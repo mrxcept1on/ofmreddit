@@ -1,5 +1,6 @@
 "use client"
 
+import { formatUtcDateTime } from "@/lib/date-format"
 import { useEffect, useRef, useState } from "react"
 import React from "react"
 import s from "@/styles/scraper.module.css"
@@ -488,16 +489,7 @@ export default function Scraper() {
           username2={runUsername2}
           rows={preview}
           rows2={preview2 ?? undefined}
-          fmtUTC={(iso) => {
-            if (!iso) return ""
-            const d = new Date(iso)
-            const dd = String(d.getUTCDate()).padStart(2, "0")
-            const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
-            const yy = String(d.getUTCFullYear()).slice(-2)
-            const hh = String(d.getUTCHours()).padStart(2, "0")
-            const min = String(d.getUTCMinutes()).padStart(2, "0")
-            return `${dd}/${mm}/${yy} ${hh}:${min}`
-          }}
+          fmtUTC={formatUtcDateTime}
           s={s}
           defaults={runDefaults}
           subsAvailable={runDefaults.inclSubs}

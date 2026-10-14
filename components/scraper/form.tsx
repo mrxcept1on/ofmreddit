@@ -1,4 +1,5 @@
 "use client"
+import { formatDateTime } from "@/lib/date-format"
 import React from "react"
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select2'
@@ -235,7 +236,7 @@ export default function Form(props: FormProps) {
                             <div key={item.id} className={s.histrow}>
                                 <div className={s.flex1}>
                                     <div className={s.fname}>{item.username}</div>
-                                    <div className={s.hint} style={{ fontSize: '0.8rem',marginTop : '-0.5px' }}>{new Date(item.scraped_at).toLocaleString()}</div>
+                                    <div className={s.hint} style={{ fontSize: '0.8rem',marginTop : '-0.5px' }}>{formatDateTime(item.scraped_at)}</div>
                                 </div>
                                 <button type="button" className={s.mini} onClick={() => onLoadSaved(item.username)}>Load</button>
                                 <button type="button" className={s.mini} onClick={() => onCompareSaved(item.username)}>Compare</button>

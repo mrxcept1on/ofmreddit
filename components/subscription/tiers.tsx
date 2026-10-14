@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDateTime } from "@/lib/date-format"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { ArrowLeft, CheckCircle2, Copy, Loader2, X } from "lucide-react"
@@ -270,7 +271,7 @@ export default function SubscriptionTiers({
                       {copied === "address" && <p className="mt-1 text-xs text-green-500">Address copied</p>}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Request expires {new Date(payment.expiresAt).toLocaleString()}. Status: <span className="font-semibold capitalize text-foreground">{payment.status}</span>
+                      Request expires {formatDateTime(payment.expiresAt)}. Status: <span className="font-semibold capitalize text-foreground">{payment.status}</span>
                     </div>
                   </div>
                   <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 font-bold text-white">

@@ -1,5 +1,6 @@
 "use client"
 
+import { parseDate } from "@/lib/date-format"
 import React, { useMemo, useState } from "react"
 import OneDayPicker from "@/components/post-planner/one-day-picker"
 import AutoPlan from "@/components/post-planner/auto-plan"
@@ -42,8 +43,8 @@ const convertDate = (dateVal: string | number | Date): Date | null => {
   if (!dateVal) return null
   if (dateVal instanceof Date && !isNaN(dateVal.getTime())) return dateVal
   if (typeof dateVal === "number" && Number.isFinite(dateVal)) return new Date(Math.round((dateVal - 25569) * 86400 * 1000))
-  const d = new Date(dateVal)
-  return isNaN(d.getTime()) ? null : d
+  const d = parseDate(dateVal)
+  return d
 }
 
 const getMedian = (arr: number[]): number => {

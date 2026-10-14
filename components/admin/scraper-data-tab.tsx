@@ -1,4 +1,5 @@
 "use client"
+import { formatDateTime } from "@/lib/date-format"
 import { useEffect, useMemo, useState } from "react"
 
 type Row = {
@@ -110,7 +111,7 @@ export function ScraperDataTab() {
             <div className="flex flex-wrap gap-2">
               {g.history.length === 0 && <span className="text-sm text-muted-foreground">None</span>}
               {g.history.map((h, i) => (
-                <span key={i} className="text-xs rounded-md border px-3 py-2" title={new Date(h.at).toLocaleString()}>
+                <span key={i} className="text-xs rounded-md border px-3 py-2" title={formatDateTime(h.at)}>
                   {h.username}
                 </span>
               ))}

@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDateTime } from "@/lib/date-format"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CaptionForm } from "@/components/caption-generator/caption-form"
@@ -230,7 +231,7 @@ export default function CaptionGeneratorPage() {
         }
         if (errorData.code === "DAILY_QUOTA_EXHAUSTED") {
           const retryAt = errorData.retryAvailableAt ? new Date(errorData.retryAvailableAt) : null
-          setError(`${message}${retryAt && Number.isFinite(retryAt.getTime()) ? ` Google's reported retry time: ${retryAt.toLocaleString()}.` : ""}`)
+          setError(`${message}${retryAt && Number.isFinite(retryAt.getTime()) ? ` Google's reported retry time: ${formatDateTime(retryAt)}.` : ""}`)
           setAiMessage("Daily Gemini API quota reached. Your inputs are kept; a short retry will not help.")
           return
         }

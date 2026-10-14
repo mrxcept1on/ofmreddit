@@ -1,3 +1,4 @@
+import { formatDate, formatUtcDateTime, parseDate } from "@/lib/date-format"
 import { NextRequest, NextResponse } from "next/server"
 import chromium from "@sparticuz/chromium-min"
 
@@ -18,13 +19,7 @@ function sanitize(html: string | null | undefined) {
   if (!html) return ""
   return String(html)
 }
-function fmtUTC(s: string) {
-  if (!s) return ""
-  const d = new Date(s)
-  if (isNaN(d.getTime())) return s
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`
-}
+const fmtUTC = formatUtcDateTime
 function kpiCompute(arrIn: any[], dateRange: string, limit: number, inclPER: boolean) {
   const arr = Array.isArray(arrIn) ? arrIn : []
   const sum = (xs: any[], f: (x: any) => number) => xs.reduce((t, x) => t + (Number(f(x)) || 0), 0)
@@ -477,6 +472,7 @@ function buildBarFallbackSVG({
 
 function toUtcDate(s: string) {
   if (!s) return null as Date | null
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) return parseDate(s)
   if (s.includes("-")) {
     const parts = s.split("-").map((x) => x.trim())
     if (parts.length === 3) {
@@ -565,12 +561,7 @@ function aggregateSeries(series: Array<{ date: string; v: number | null }>, gran
   })
 }
 function fmtDMY(s: string) {
-  const d = toUtcDate(s)
-  if (!d) return s
-  const day = d.getUTCDate()
-  const mon = d.getUTCMonth() + 1
-  const yr = d.getUTCFullYear()
-  return `${day}/${mon}/${yr}`
+  return formatDate(toUtcDate(s), { timeZone: "UTC" })
 }
 function buildLineFallbackSVG({
   ts1,
@@ -863,7 +854,7 @@ export async function POST(req: NextRequest) {
 
   const actualRange = computeActualDateRange(ts1)
   const dateRangeText = actualRange || dateRange
-  const now = new Date().toLocaleString("en-US", { hour12: false })
+  const now = formatUtcDateTime(new Date())
   const noteExclusion = removedList.length ? `Excluded: ${removedList.join(", ")}` : `No exclusions.`
 
   const html = `

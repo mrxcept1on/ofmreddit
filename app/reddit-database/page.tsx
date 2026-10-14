@@ -255,21 +255,24 @@ export default function RedditDatabasePage() {
           </p>
         </div>
 
-        {sheetData && <section aria-label="Banned subreddit detections" className="space-y-2">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[{ label: "Banned detected today", value: banCounts?.today, period: "Since midnight UTC" },
-              { label: "Banned detected (last 7 days)", value: banCounts?.last7Days, period: "Last 7 days" }].map(card =>
-              <div key={card.label} className="rounded-xl border border-border bg-card px-4 py-3">
-                <p className="text-sm text-muted-foreground">{card.label}</p>
-                <p className="text-2xl font-semibold" data-testid={card.period === "Last 7 days" ? "banned-week" : "banned-day"}>
+        {sheetData && <section aria-label="Banned subreddits detected and removed" className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[{ id: "day", title: "Today", value: banCounts?.today, period: "Since midnight UTC" },
+              { id: "week", title: "7 days", value: banCounts?.last7Days, period: "Last 7 days" },
+              { id: "month", title: "One month", value: banCounts?.last30Days, period: "Last 30 days" },
+              { id: "total", title: "Total", value: banCounts?.total, period: "All time since removal tracking began" }].map(card =>
+              <div key={card.id} className="rounded-xl border border-border bg-card px-4 py-3">
+                <p className="text-sm font-medium">{card.title}</p>
+                <p className="text-xs text-muted-foreground">Banned detected and removed</p>
+                <p className="text-2xl font-semibold" data-testid={`banned-${card.id}`}>
                   {card.value === undefined ? "Unavailable" : card.value.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">{card.period}</p>
               </div>)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Unique database subreddits newly confirmed banned by Reddit. Repeat checks, private communities and generic missing pages do not count.
-            Counts start when detection tracking is enabled; older bans are not backdated.
+            Unique database subreddits confirmed banned by Reddit and removed from the visible database, counted when removal is verified.
+            Pending detections, repeat checks, private communities and generic missing pages do not count. Older removals are not backdated.
           </p>
         </section>}
 

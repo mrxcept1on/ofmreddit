@@ -1,4 +1,5 @@
 "use client"
+import { formatDate, formatDateTime } from "@/lib/date-format"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -93,7 +94,7 @@ export function PendingSubredditsTab() {
             <TableCell>{found?.top1_weekly == null ? "—" : Number(found.top1_weekly).toLocaleString("en-US")}</TableCell>
             <TableCell>{found ? <>
               {found.source === "sidebar_link" ? "Sidebar link" : found.source === "related_widget" ? "Related community" : "Niche search"}
-              {` / ${found.latest_post_utc ? new Date(found.latest_post_utc * 1000).toLocaleDateString() : "Unknown"}`}
+              {` / ${found.latest_post_utc ? formatDate(found.latest_post_utc * 1000) : "Unknown"}`}
               {found.seed_subreddit && <div className="text-xs text-muted-foreground">Linked from r/{found.seed_subreddit}</div>}
             </> : "User submission"}</TableCell>
             <TableCell className="max-w-xs text-sm">{sub.submitted_by || (found ? "Automatic discovery" : "Unknown user")}</TableCell>
@@ -124,7 +125,7 @@ export function PendingSubredditsTab() {
           <TableCell>{sub.subreddit_name}</TableCell>
           <TableCell>{sub.state === "archived" ? "Archived" : "Under review"}</TableCell>
           <TableCell>{sub.dead_checks} / 3</TableCell>
-          <TableCell className="max-w-md text-sm">{sub.last_evidence}<div className="text-muted-foreground">{sub.last_checked_at ? new Date(sub.last_checked_at).toLocaleString() : ""}</div></TableCell>
+          <TableCell className="max-w-md text-sm">{sub.last_evidence}<div className="text-muted-foreground">{sub.last_checked_at ? formatDateTime(sub.last_checked_at) : ""}</div></TableCell>
           <TableCell>{sub.state === "archived" && (sub.requested_action === "restore" || pendingActions[sub.subreddit_name] === "restore" ? "Restore queued" : <Button size="sm" variant="outline" onClick={() => handleAction("restore", sub)}>Restore</Button>)}</TableCell>
         </TableRow>)}</TableBody>
       </Table>

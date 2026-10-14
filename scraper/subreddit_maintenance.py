@@ -203,6 +203,15 @@ class Maintenance:
         self.report['actions'].append({'subreddit': name, 'action': 'checker_credit_awarded', 'users': count})
         return count
 
+    def record_ban_removal(self, name):
+        """Record a verified removal once per explicitly confirmed ban episode."""
+        if not self.apply:
+            return
+        previous = self.sql("SELECT action FROM subreddit_maintenance_events WHERE subreddit_name=%s "
+                            "AND action IN ('banned_detected','banned_removed','ban_recovered','restore') ORDER BY id DESC LIMIT 1", (name,))
+        if previous and previous[0]['action'] == 'banned_detected':
+            self.event(name, 'banned_removed', {'source': 'database_maintenance', 'sheet_status_verified': True})
+
     def table(self):
         self.store._sheet1_values = None
         headers, matrix = self.store._load_sheet1()
@@ -238,10 +247,14 @@ class Maintenance:
         self.store.workbook.batch_update({'requests': requests})
         _, checked_lookup, checked_rows = self.table()
         expected = 'archived' if archived else ''
+        if not checked_rows.get(name):
+            raise RuntimeError(f'Sheet row disappeared during visibility readback for r/{name}')
         for _, row in checked_rows.get(name, []):
             status = row[checked_lookup['sync status']] if len(row) > checked_lookup['sync status'] else ''
             if status != expected:
                 raise RuntimeError(f'Sheet status readback mismatch for r/{name}')
+        if archived:
+            self.record_ban_removal(name)
 
     def archive(self, name, record):
         headers, _, rows = self.table()

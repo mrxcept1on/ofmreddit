@@ -40,7 +40,9 @@ def mutable_worker(matrix):
     store.workbook.fetch_sheet_metadata.return_value = {
         'sheets': [{'properties': {'sheetId': 0}, 'tables': [{'tableId': 'fixture', 'range': {'sheetId': 0, 'endRowIndex': 2}}]}],
     }
-    return Maintenance(store, None, None, apply=True)
+    worker = Maintenance(store, None, None, apply=True)
+    worker.sql = Mock(return_value=[])
+    return worker
 
 
 class HttpError(Exception):
@@ -84,7 +86,8 @@ class MaintenanceTests(unittest.TestCase):
         ledger = []
         def sql(statement, params=()):
             if statement.startswith('SELECT action'):
-                return [{'action': ledger[-1]}] if ledger else []
+                relevant = [action for action in ledger if f"'{action}'" in statement]
+                return [{'action': relevant[-1]}] if relevant else []
             if statement.startswith('INSERT INTO subreddit_maintenance_events'):
                 ledger.append(params[1])
             return []
@@ -123,6 +126,49 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(ledger, ['banned_detected'])
         self.assertFalse(worker.report['checks'][0]['eligible'])
         self.assertEqual(worker.report['checks'][0]['dead_checks'], 1)
+
+    def test_verified_ban_removal_is_idempotent_and_preserves_open_detection(self):
+        worker, ledger = self.ledger_worker()
+        worker.record_ban_removal('example')  # No explicit ban, no count.
+        ban = Probe('dead', 'Explicit Reddit ban', is_banned=True)
+        worker.record_ban_observation('example', ban)
+        worker.record_ban_removal('example')
+        worker.record_ban_removal('example')
+        worker.record_ban_observation('example', ban)
+        self.assertEqual(ledger, ['banned_detected', 'banned_removed'])
+        worker.record_ban_observation('example', Probe('alive', 'Live metadata'))
+        worker.record_ban_removal('example')  # Recovery is not a removal.
+        worker.record_ban_observation('example', ban)
+        worker.record_ban_removal('example')
+        self.assertEqual(ledger, ['banned_detected', 'banned_removed', 'ban_recovered', 'banned_detected', 'banned_removed'])
+        dry, dry_ledger = self.ledger_worker(apply=False)
+        dry.record_ban_removal('example')
+        self.assertEqual(dry_ledger, [])
+
+    def test_removal_record_is_after_verified_sheet_readback_and_retries_partial_archive(self):
+        headers = list(SHEET1_REQUIRED_HEADERS)
+        worker = mutable_worker([headers, ['example']])
+        record = Mock()
+        worker.record_ban_removal = record
+        worker.store.workbook.batch_update.side_effect = RuntimeError('Sheet write failed')
+        with self.assertRaises(RuntimeError):
+            worker.set_visibility('example', archived=True)
+        record.assert_not_called()
+        worker.store.workbook.batch_update.side_effect = None
+        worker.set_visibility('example', archived=True)
+        record.assert_called_once_with('example')
+        worker.set_visibility('example', archived=False)
+        self.assertEqual(record.call_count, 1)
+
+    def test_missing_or_mismatched_visibility_readback_never_counts_removal(self):
+        for checked_rows in [{}, {'example': [(2, ['example', 'error'])]}]:
+            worker = mutable_worker([['Subreddit', 'Sync Status', 'Sync Error', 'Scraped At UTC'], ['example']])
+            initial = worker.table()
+            worker.table = Mock(side_effect=[initial, (initial[0], initial[1], checked_rows)])
+            worker.record_ban_removal = Mock()
+            with self.assertRaises(RuntimeError):
+                worker.set_visibility('example', archived=True)
+            worker.record_ban_removal.assert_not_called()
 
     def test_successful_normal_scrape_records_recovery_without_extra_reddit_probe(self):
         worker, ledger = self.ledger_worker()

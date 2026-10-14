@@ -304,22 +304,34 @@ are verified using OAuth, and every queued name/submitter attribution is saved i
 one transaction. Retries do not reset rewards or overwrite admin decisions or
 curated tags. Archived communities require the existing admin restore flow.
 
-The database page also shows **Banned detected today** (since midnight UTC) and
-**Banned detected (last 7 days)** (a rolling seven-day period). These count distinct
-database subreddit names first recorded with Reddit's explicit `404 reason=banned`
-response, not submission failures, private communities, generic missing pages,
-zero stats, archive actions or every retry. Daily maintenance records the first
-ban observation before the existing three-check archive threshold; repeat checks
-and uncertain responses do not start new ban episodes. Confirmed recovery or a
-completed restore lets a later real ban be recorded again. Even multiple episodes
-of the same name count once in a displayed period.
+The database page shows four **Banned detected and removed** panels: today
+(since midnight UTC), the last 7 days, one month (rolling 30 days), and total
+(all time since verified-removal tracking began). These count distinct database
+subreddit names with a `banned_removed` event, recorded only after an explicit
+Reddit `404 reason=banned` observation and verified archived status in the Sheet.
+Pending detections are not removals. Failed/partial Sheet writes, submission
+failures, private communities, generic missing pages, zero stats and repeat checks
+do not inflate counts. Existing archive grace rules are unchanged. Retrying a
+partial archive records completion once the Sheet readback succeeds; confirmed
+recovery/restoration permits a later ban episode. Even multiple episodes of the
+same name count once in each displayed period.
 
 Counts refresh with the table, including automatic refresh, and are visible to
 both paid users and Free previews without exposing subreddit identities. If the
 statistics query fails, cards say `Unavailable` rather than a false zero and the
 table stays accessible. Tracking uses the existing maintenance event table: no
-new schema migration or historical date invention. Old bans are not backdated;
-counts begin with the first tracking-enabled maintenance run after deployment.
+new schema migration or historical date invention. Old detections/removals are
+not backdated; existing archived, explicitly banned rows are counted on their
+next successful visibility verification by scheduled maintenance. Totals may
+differ from the previous detection-only cards because pending/unverified
+removals are now excluded.
+
+All user-facing dates use `dd/mm/yyyy` with a four-digit year via
+`lib/date-format.ts`, including payment dates, admin logs, discovery dates,
+scraper results, chart labels, planner dates, subscription notices, and PDF/Excel
+exports. Timestamps retain their time and intended timezone (UTC exports are
+explicitly labelled). ISO API timestamps, sorting/grouping keys, and stored data
+remain unchanged. The planner accepts the day-first Excel timestamps on re-import.
 
 For rollback, revert these application/scraper changes together. Keep recorded
 events and submission attributions intact; no data cleanup or reverse migration

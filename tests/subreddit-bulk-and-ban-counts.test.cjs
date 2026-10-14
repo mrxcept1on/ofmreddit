@@ -120,19 +120,34 @@ test('stored admin rejection, approval and archival are preserved in the locked 
     assert.ok(!f.statements.some(x=>Array.isArray(x)&&x[0].startsWith('INSERT INTO subreddit_submission_attempts')))
   }
 })
-test('ban counters use unique explicit-ban ledger names and exact UTC day/seven-day boundaries',async()=>{
+test('ban counters use unique verified removals and exact UTC day/seven/thirty-day boundaries plus all-time total',async()=>{
   const calls=[]
-  const module=load('lib/subreddit-ban-counts.ts',{'@/lib/db':{query:async(sql,params)=>{calls.push([sql,params]);return [{today:'2',last7Days:'7'}]}}})
+  const module=load('lib/subreddit-ban-counts.ts',{'@/lib/db':{query:async(sql,params)=>{calls.push([sql,params]);return [{today:'2',last7Days:'7',last30Days:'12',total:'19'}]}}})
   const now=new Date('2026-10-10T04:05:06Z'),counts=await module.getBanDetectionCounts(now)
   assert.equal(counts.today,2);assert.equal(counts.last7Days,7);assert.equal(counts.timezone,'UTC')
+  assert.equal(counts.last30Days,12);assert.equal(counts.total,19)
   assert.equal(counts.todayStart,'2026-10-10T00:00:00.000Z');assert.equal(counts.weekStart,'2026-10-03T04:05:06.000Z')
-  assert.match(calls[0][0],/COUNT\(DISTINCT/);assert.match(calls[0][0],/action = 'banned_detected'/)
+  assert.equal(counts.monthStart,'2026-09-10T04:05:06.000Z')
+  assert.match(calls[0][0],/COUNT\(DISTINCT/);assert.match(calls[0][0],/action = 'banned_removed'/)
   assert.match(calls[0][0],/FROM_UNIXTIME/)
-  assert.deepEqual(plain(calls[0][1]),[Date.parse(counts.todayStart)/1000,Date.parse(counts.weekStart)/1000,now.getTime()/1000])
+  assert.deepEqual(plain(calls[0][1]),[Date.parse(counts.todayStart)/1000,Date.parse(counts.weekStart)/1000,Date.parse(counts.monthStart)/1000,now.getTime()/1000])
+  assert.doesNotMatch(calls[0][0],/WHERE[^;]+created_at >=/)
+  const endOfMonth=await module.getBanDetectionCounts(new Date('2026-03-31T04:05:06Z'))
+  assert.equal(endOfMonth.monthStart,'2026-03-01T04:05:06.000Z')
 })
 test('bad or unavailable counts are errors rather than fabricated zeros',async()=>{
-  for(const values of [[],[{today:-1,last7Days:4}],[{today:'invalid',last7Days:4}],[{today:null,last7Days:4}],[{today:5,last7Days:4}]]){
+  const valid={today:1,last7Days:4,last30Days:8,total:12}
+  for(const values of [[],...[
+    {today:-1},{today:'invalid'},{today:null},{today:5},
+    {last30Days:3},{total:7},{last30Days:undefined},{total:Number.MAX_SAFE_INTEGER+1},
+  ].map(bad=>[{...valid,...bad}])]){
     const module=load('lib/subreddit-ban-counts.ts',{'@/lib/db':{query:async()=>values}})
     await assert.rejects(()=>module.getBanDetectionCounts())
   }
+})
+
+test('empty removal ledger has four real zero counts',async()=>{
+  const module=load('lib/subreddit-ban-counts.ts',{'@/lib/db':{query:async()=>[{today:0,last7Days:0,last30Days:0,total:0}]}})
+  const counts=await module.getBanDetectionCounts()
+  for(const key of ['today','last7Days','last30Days','total'])assert.equal(counts[key],0)
 })

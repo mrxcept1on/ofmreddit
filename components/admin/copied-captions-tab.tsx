@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDateTime } from "@/lib/date-format"
 import { Card } from "@/components/ui/card"
 import { Copy } from "lucide-react"
 
@@ -30,7 +31,7 @@ export function CopiedCaptionsTab({ copiedCaptions }: CopiedCaptionsTabProps) {
               <div className="flex-1">
                 <p className="text-sm font-medium mb-1">{caption.user_email}</p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Post: {caption.post_name} • {new Date(caption.copied_at).toLocaleString()}
+                  Post: {caption.post_name} • {formatDateTime(caption.copied_at)}
                 </p>
                 <p className="text-sm bg-background p-3 rounded border border-border">{caption.caption_text}</p>
               </div>

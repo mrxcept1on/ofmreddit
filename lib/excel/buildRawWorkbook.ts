@@ -1,3 +1,4 @@
+import { formatUtcDateTime } from "@/lib/date-format"
 import ExcelJS from "exceljs"
 
 export interface RawPostRow {
@@ -6,14 +7,6 @@ export interface RawPostRow {
   Comments: number
   Subreddit_Subscribers?: number
   LastDate: Date | string
-}
-
-function fmtUTCExcel(isoOrDate: string | Date) {
-  if (!isoOrDate) return ""
-  const d = isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate)
-  if (isNaN(d.getTime())) return String(isoOrDate)
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`
 }
 
 export async function buildRawWorkbook(
@@ -44,7 +37,7 @@ export async function buildRawWorkbook(
   rows.forEach(r =>
     worksheet.addRow({
       ...r,
-      LastDate: fmtUTCExcel(r.LastDate),
+      LastDate: formatUtcDateTime(r.LastDate),
     })
   )
 

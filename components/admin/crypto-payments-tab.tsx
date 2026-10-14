@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDateTime } from "@/lib/date-format"
 import { useCallback, useEffect, useState } from "react"
 import { Loader2, RefreshCw } from "lucide-react"
 
@@ -81,8 +82,8 @@ export function CryptoPaymentsTab() {
                 <td className="p-3"><div className="font-medium">{row.tier_name}</div><div className="text-xs text-muted-foreground">{row.duration_days} days</div></td>
                 <td className="p-3 font-mono">{row.expected_amount} {row.coin}<div className="text-xs text-muted-foreground">{row.network}</div></td>
                 <td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold capitalize ${statusClass(row.status)}`}>{row.status}</span></td>
-                <td className="p-3">{new Date(row.created_at).toLocaleString()}</td>
-                <td className="p-3">{new Date(row.paid_at || row.expires_at).toLocaleString()}<div className="text-xs text-muted-foreground">{row.paid_at ? "Paid" : "Expires"}</div></td>
+                <td className="p-3">{formatDateTime(row.created_at)}</td>
+                <td className="p-3">{formatDateTime(row.paid_at || row.expires_at)}<div className="text-xs text-muted-foreground">{row.paid_at ? "Paid" : "Expires"}</div></td>
                 <td className="max-w-48 break-all p-3 font-mono text-xs">{row.tx_id || "—"}</td>
               </tr>
             ))}

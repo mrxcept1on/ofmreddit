@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDate } from "@/lib/date-format"
 import React from "react"
 import {
   LineChart as RLineChart,
@@ -24,30 +25,9 @@ interface Props {
 
 const TEAL = "rgb(20,184,166)"
 
-function fmtDate(d: string) {
-  if (!d) return d
-  if (d.includes("-")) {
-    const parts = d.split("-").map((x) => x.trim())
-    if (parts.length === 3) {
-      const y = Number(parts[0])
-      const m = Number(parts[1])
-      const day = Number(parts[2])
-      if (Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(day)) return `${day}/${m}/${y}`
-    }
-  }
-  if (d.includes("/")) {
-    const parts = d.split("/").map((x) => x.trim())
-    if (parts.length === 3) {
-      let a = Number(parts[0])
-      let b = Number(parts[1])
-      let c = Number(parts[2])
-      if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(c)) {
-        if (c > 1900) return `${a}/${b}/${c}`
-        return `${Number(parts[2])}/${Number(parts[1])}/${Number(parts[0])}`
-      }
-    }
-  }
-  return d
+function fmtDate(value: string) {
+  const day = /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value
+  return formatDate(day, { timeZone: "UTC" })
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {

@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDate } from "@/lib/date-format"
 import { Pencil, X, Check } from "lucide-react"
 import { useEffect, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -255,11 +256,11 @@ export function UserRow({ user, onBan, onDelete, onUpdateUsername, onUpdateCusto
           <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">Banned</span>
         ) : (
           <span className="text-muted-foreground">
-            {user.last_active ? new Date(user.last_active).toLocaleDateString() : "Never"}
+            {user.last_active ? formatDate(user.last_active) : "Never"}
           </span>
         )}
       </td>
-      <td className="p-3 text-sm text-muted-foreground">{new Date(user.created_at).toLocaleDateString()}</td>
+      <td className="p-3 text-sm text-muted-foreground">{formatDate(user.created_at)}</td>
       <td className="p-3">
         <div className="flex items-center justify-end gap-2">
           <Button

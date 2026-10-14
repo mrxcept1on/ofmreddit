@@ -32,6 +32,9 @@ async function testSubredditDatabaseWebsite({ url, token, names, clientFixtures 
     report.live.counts = livePayload.banCounts
     assert.equal(await page.$eval('[data-testid="banned-day"]', node => node.textContent.trim()), livePayload.banCounts.today.toLocaleString())
     assert.equal(await page.$eval('[data-testid="banned-week"]', node => node.textContent.trim()), livePayload.banCounts.last7Days.toLocaleString())
+    assert.equal(await page.$eval('[data-testid="banned-month"]', node => node.textContent.trim()), livePayload.banCounts.last30Days.toLocaleString())
+    assert.equal(await page.$eval('[data-testid="banned-total"]', node => node.textContent.trim()), livePayload.banCounts.total.toLocaleString())
+    assert.equal(await page.$$eval('section[aria-label="Banned subreddits detected and removed"] > div > div', nodes => nodes.length), 4)
     report.live.renderedCountsMatchApi = true
     await page.screenshot({ path: `${destination}-live-counts.png` })
 
@@ -85,7 +88,7 @@ async function testSubredditDatabaseWebsite({ url, token, names, clientFixtures 
     await close()
 
     if (clientFixtures) {
-      let scenario = 'partial', requestCount = 0, counts = { ...livePayload.banCounts, today: 3, last7Days: 9 }
+      let scenario = 'partial', requestCount = 0, counts = { ...livePayload.banCounts, today: 3, last7Days: 9, last30Days: 21, total: 51 }
       await page.setRequestInterception(true)
       page.on('request', request => {
         if (request.url() === origin + '/api/reddit-database') {
@@ -106,6 +109,8 @@ async function testSubredditDatabaseWebsite({ url, token, names, clientFixtures 
       await page.reload({ waitUntil: 'networkidle2' })
       assert.equal(await page.$eval('[data-testid="banned-day"]', node => node.textContent.trim()), '3')
       assert.equal(await page.$eval('[data-testid="banned-week"]', node => node.textContent.trim()), '9')
+      assert.equal(await page.$eval('[data-testid="banned-month"]', node => node.textContent.trim()), '21')
+      assert.equal(await page.$eval('[data-testid="banned-total"]', node => node.textContent.trim()), '51')
       report.clientFixtures.nonzeroCountersRender = true
       await fill('#search', 'no_such_row_in_this_test')
       assert.equal(await page.$eval('[data-testid="banned-day"]', node => node.textContent.trim()), '3')

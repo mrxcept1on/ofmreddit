@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDate } from "@/lib/date-format"
 import * as React from 'react'
 import {
   ChevronDownIcon,
@@ -190,7 +191,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatDate(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

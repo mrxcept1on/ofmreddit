@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDate } from "@/lib/date-format"
 import React, { useEffect, useState } from "react"
 
 type Tier = "High" | "Medium" | "Low"
@@ -135,11 +136,7 @@ export default function AutoPlan({ allSubredditData }: { allSubredditData: Subre
   const remove = (s: string) => setRemoved(prev => new Set(prev).add(s))
   const addBack = (s: string) => setRemoved(prev => { const n = new Set(prev); n.delete(s); return n })
 
-  const fmtDate = (d: Date) => {
-    const day = d.getDate()
-    const suffix = ["th", "st", "nd", "rd"][((day + 90) % 100 - 10) % 10] || "th"
-    return `${day}${suffix} ${d.toLocaleString("default", { month: "long" })}`
-  }
+  const fmtDate = formatDate
 
   return (
     <div className="space-y-6">

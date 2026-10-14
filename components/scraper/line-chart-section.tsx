@@ -1,4 +1,5 @@
 "use client"
+import { parseDate } from "@/lib/date-format"
 
 import React from "react"
 import PerformanceLineChart, { TimeSeriesRow } from "./line-chart"
@@ -23,6 +24,7 @@ interface Props {
 
 function toUtcDate(s: string) {
   if (!s) return null as Date | null
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) return parseDate(s)
   if (s.includes("-")) {
     const parts = s.split("-").map((x) => x.trim())
     if (parts.length === 3) {

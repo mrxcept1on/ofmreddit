@@ -6,7 +6,7 @@ const vm = require('node:vm')
 const ts = require('typescript')
 
 function load(relative, dependencies, env = {}) {
-  dependencies = { "@/lib/subreddit-ban-counts": { getBanDetectionCounts: async () => ({ today: 2, last7Days: 5, timezone: "UTC" }) }, ...dependencies }
+  dependencies = { "@/lib/subreddit-ban-counts": { getBanDetectionCounts: async () => ({ today: 2, last7Days: 5, last30Days: 11, total: 25, timezone: "UTC" }) }, ...dependencies }
   const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', relative), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText
@@ -44,6 +44,8 @@ test('the website follows Sheet rows without merging approved DB-only records', 
   assert.equal(response.status, 200)
   assert.equal(response.body.banCounts.today, 2)
   assert.equal(response.body.banCounts.last7Days, 5)
+  assert.equal(response.body.banCounts.last30Days, 11)
+  assert.equal(response.body.banCounts.total, 25)
   assert.equal(response.body.mainSheet.rows.length, 2)
   assert.equal(response.body.mainSheet.rows[0][1], '100')
   assert.equal(response.body.mainSheet.rows[1][0], 'https://www.reddit.com/r/DB_Archived/')

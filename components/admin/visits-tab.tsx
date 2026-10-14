@@ -1,5 +1,6 @@
 "use client"
 
+import { formatDate, formatDateTime } from "@/lib/date-format"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -67,7 +68,7 @@ export function VisitsTab() {
       if (analyticsData.visitsByDay) {
         analyticsData.visitsByDay = analyticsData.visitsByDay.map((v: any) => ({
           ...v,
-          date: new Date(v.date).toLocaleDateString(undefined, { year: '2-digit', month: 'short', day: 'numeric' }),
+          date: formatDate(v.date),
           count: Number(v.count)
         }))
       }
@@ -214,7 +215,7 @@ export function VisitsTab() {
                         <TableCell className="text-xs text-muted-foreground">{visit.ip_address}</TableCell>
                         <TableCell className="text-xs">{formatUserAgent(visit.user_agent)}</TableCell>
                         <TableCell className="text-right text-xs">
-                          {new Date(visit.visited_at).toLocaleString()}
+                          {formatDateTime(visit.visited_at)}
                         </TableCell>
                       </TableRow>
                     ))

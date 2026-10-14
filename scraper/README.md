@@ -286,12 +286,17 @@ threshold. The existing single-worker MySQL lock makes the read/event write
 idempotent. Repeated ban probes and uncertain replies leave that episode open;
 matching live metadata (including a successful regular scrape) records
 `ban_recovered`. A completed `restore` also closes the episode. A later confirmed
-ban can start a new episode, but the website counts unique names in each period.
+ban can start a new episode. After the archive Sheet writes and archived-status
+readback succeed, `banned_removed` records completion once per episode. Partial
+writes/readback failures do not count; an archived-row retry can finish tracking.
+The website counts unique removed names in each period, not raw detections.
 
 Only active/errored or archived database rows checked by maintenance are included,
 not failed discovery/user-submission candidates. Generic missing communities may
 still follow the existing archival rules but never count as explicit bans.
-The website displays today since UTC midnight and the rolling last seven days.
+The website displays four "Banned detected and removed" panels: today since UTC
+midnight, rolling last seven days, one month (rolling last 30 days), and all-time
+total. Periods use the verified removal time, not the initial ban observation.
 No observations are backdated and dry-run probes never write tracking events.
 This uses the existing maintenance-event schema and normal scheduled worker;
 no manual scraper run or new migration is needed after deployment.
